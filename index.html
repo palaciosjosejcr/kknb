@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Domótica - Monitoreo Térmico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        .sensor-card { transition: all 0.25s ease; }
+        .sensor-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(2,6,23,0.08); }
+        .thermo-bar { height: 14px; background: #e6eef8; border-radius: 999px; overflow: hidden; }
+        .thermo-fill { height: 100%; background: linear-gradient(90deg,#ef4444,#3b82f6); transition: width 0.4s ease; }
+        .indicator { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; }
+        .indicator.disabled { opacity:0.6 }
+        .clickable { cursor:pointer }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <header class="bg-gradient-to-r from-blue-900 to-red-700 text-white shadow-lg border-b-4 border-red-600">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white p-2 rounded-full">
+                    <i data-lucide="home" class="w-8 h-8 text-blue-900"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Casa Domótica</h1>
+                    <p class="text-xs text-white/80 font-semibold tracking-widest">Integrantes: Palacio, Tuaquisa, Garofalo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-lg border border-white/10">
+                <span id="connectionDot" class="inline-flex h-3 w-3 bg-red-500 rounded-full"></span>
+                <span id="statusText" class="text-sm font-mono text-red-200">Desconectado</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="container mx-auto px-4 py-2 flex flex-wrap justify-between items-center text-sm text-slate-600">
+            <div class="flex items-center gap-2">
+                <i data-lucide="user-circle" class="w-4 h-4 text-red-600"></i>
+                <span class="font-medium">Desarrollador: <span class="text-slate-800 font-bold">Carlos Ruiz</span></span>
+            </div>
+            <div class="flex gap-4 font-mono text-slate-500">
+                <span id="dateDisplay">--/--/----</span>
+                <span id="timeDisplay" class="text-blue-700 font-bold">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-slate-800">Monitoreo de Temperatura Multipunto</h2>
+            <p class="text-slate-500 mt-1">Bus OneWire - Sensores DS18B20 (Dormitorio, Sala, Cocina, Garaje)</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="sensor-card bg-white rounded-xl overflow-hidden shadow border border-slate-200 p-5">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-700">Dormitorio</h3>
+                    <i data-lucide="thermometer" class="w-5 h-5 text-slate-400"></i>
+                </div>
+                <div class="text-center mt-6">
+                    <div class="text-5xl font-extrabold text-slate-800" id="val1">--</div>
+                    <div class="text-slate-400 mt-2 text-sm">Grados Celsius (°C)</div>
+                    <div class="thermo-bar mt-4"><div id="t1" class="thermo-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+
+            <div class="sensor-card bg-white rounded-xl overflow-hidden shadow border-slate-200 p-5">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-700">Sala</h3>
+                    <i data-lucide="thermometer" class="w-5 h-5 text-slate-400"></i>
+                </div>
+                <div class="text-center mt-6">
+                    <div class="text-5xl font-extrabold text-slate-800" id="val2">--</div>
+                    <div class="text-slate-400 mt-2 text-sm">Grados Celsius (°C)</div>
+                    <div class="thermo-bar mt-4"><div id="t2" class="thermo-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+
+            <div class="sensor-card bg-white rounded-xl overflow-hidden shadow border-slate-200 p-5">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-700">Cocina</h3>
+                    <i data-lucide="thermometer" class="w-5 h-5 text-slate-400"></i>
+                </div>
+                <div class="text-center mt-6">
+                    <div class="text-5xl font-extrabold text-slate-800" id="val3">--</div>
+                    <div class="text-slate-400 mt-2 text-sm">Grados Celsius (°C)</div>
+                    <div class="thermo-bar mt-4"><div id="t3" class="thermo-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+
+            <div class="sensor-card bg-white rounded-xl overflow-hidden shadow border-slate-200 p-5">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-700">Garaje</h3>
+                    <i data-lucide="thermometer" class="w-5 h-5 text-slate-400"></i>
+                </div>
+                <div class="text-center mt-6">
+                    <div class="text-5xl font-extrabold text-slate-800" id="val4">--</div>
+                    <div class="text-slate-400 mt-2 text-sm">Grados Celsius (°C)</div>
+                    <div class="thermo-bar mt-4"><div id="t4" class="thermo-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow mt-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Promedio General</h3>
+                    <div class="text-5xl font-extrabold mt-2" id="prom">--</div>
+                    <div class="thermo-bar mt-3"><div id="tg" class="thermo-fill" style="width:0%"></div></div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <label class="text-sm font-medium">Modo</label>
+                        <div class="flex items-center gap-2">
+                            <button id="autoBtn" class="px-4 py-2 rounded-lg bg-blue-700 text-white">Automático</button>
+                            <button id="manBtn" class="px-4 py-2 rounded-lg bg-slate-300 text-slate-800">Manual</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div id="ventIndicator" class="indicator bg-slate-50 border border-slate-200 rounded-lg clickable" title="Ventilador - hacer click en modo manual para alternar">
+                            <i data-lucide="wind" id="ventIcon" class="w-6 h-6 text-slate-600"></i>
+                            <div>
+                                <div class="text-xs text-slate-500">Ventilador</div>
+                                <div id="estadoVent" class="text-sm font-bold text-red-500">APAGADO</div>
+                            </div>
+                        </div>
+
+                        <div id="calIndicator" class="indicator bg-slate-50 border border-slate-200 rounded-lg clickable" title="Calefactor - hacer click en modo manual para alternar">
+                            <i data-lucide="sun" id="calIcon" class="w-6 h-6 text-slate-600"></i>
+                            <div>
+                                <div class="text-xs text-slate-500">Calefactor</div>
+                                <div id="estadoCal" class="text-sm font-bold text-red-500">APAGADO</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-center">
